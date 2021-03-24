@@ -55,11 +55,6 @@ end
 state(n) = initiate_SC_state(SC);
 
 % preallocate states structure memory
-% This is necessary because although we told Matlab it would have a certain
-% number of elements, the actual state elements are stored as pointers. So,
-% we need to assign values to these elements to hold the data memory.
-% Matlab might still throw a warning when accessing structure elements in 
-% loops but the memory allocation should be fine to reduce perfomance hit.
 for i = n-1:-1:1
     state(i) = state(n);
 end
@@ -78,8 +73,7 @@ for i = 1:n
     [R, V] = OE2SV(SC.mu, OE);
     state(i).R = R; state(i).V = V;
     
-    % current routines do not use a separate estimation state but save
-    % it anyway in case we do in the future
+    %Save basic keplerian results as estimates
     state(i).R_est = R; state(i).V_est = V;
 end
 
