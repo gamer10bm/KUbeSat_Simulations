@@ -271,12 +271,12 @@ lonid = latid+1;
 lats = reshape(cell2mat(statecell(latid,:,:)),[1 n]);
 lons = reshape(cell2mat(statecell(lonid,:,:)),[1 n]);
 %Plot the ground track
-N_off = 5; %Orbit offsets in the groundtrack plot
+N_off = 1; %Orbit offsets in the groundtrack plot
 N_now = 1;
 minichunk = 1:timesteps;
 chunk = [];
 while N_now <=N
-    if N_now == 1 || rem(N_now,N_off)==1
+    if N_now == 1 || rem(N_now,N_off)==0
         chunk = [chunk minichunk+(N_now-1)*timesteps];
     end
     N_now = N_now+1;
