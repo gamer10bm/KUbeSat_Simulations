@@ -8,8 +8,8 @@ addpath('3D_Shape')
 %% KUbeSat1 Matlab Simulations
 %Define settings for simulation
 perigee_altitude = 550; %km
-N =5; %Number of orbits
-timesteps = 500; %Time steps per orbit
+N =16; %Number of orbits
+timesteps = 100; %Time steps per orbit
 yawsteps = 100; %Yaw steps per time step
 lat_gs = 38.971669; %(deg) [Lawrence, KS]
 lon_gs = -95.23525; %(deg) [Lawrence, KS]
@@ -29,11 +29,14 @@ capture_radius = perigee_altitude*tand(mcmurdo_ant_BW/2);
 SC = initiate_SC_model();
 
 % initialize simulation epoch
-epoch = initial_epoch(2022, 1, 1, 0, 0, 0);
+yr_init = 2022; mnth_init = 1; day_init = 1; hr_init = 0;
+min_init = 0; sec_init = 0;
+init_utcvec = [yr_init, mnth_init, day_init, hr_init, min_init, sec_init];
+epoch = initial_epoch(yr_init, mnth_init, day_init, hr_init, min_init, sec_init);
 
 % determine SSO orbit for given altitude and spacecraft
 OE0 = SSO_Earth(perigee_altitude,SC);
-OE0(4) = (lon_gs+6.2)*pi/180; % Sets RAAN and centers groundtrack on Lawrence
+OE0(4) = (360+lon_gs-97)*pi/180; % Sets RAAN and centers groundtrack on Lawrence
 
 % compute orbit period and initial mean anomaly
 p = OE0(1)^2/SC.mu; T = 2*pi/sqrt(SC.mu)*p^(3/2);
@@ -103,18 +106,9 @@ for i = 1:n
 end
 
 for i = 1:n
-    %Determine latitude and longitude (no earth motion)
+      %Determine latitude and longitude (no earth motion)
     R_IJK = state(i).R;
-    [state(i).lat,lon_nomo] = ECEF2latlon(R_IJK);
-    
-    %Change longitude based on earth's rotation
-    P_s = 24*3600; %seconds length of mean solar day
-    P_e = 86164; %seconds rotation period of earth
-    lon_mo = lon_nomo+360*(1/P_e-1/P_s)*state(i).t;
-    if lon_mo>=180
-        lon_mo = lon_mo-360*floor(i/n*N);
-    end
-    state(i).lon = lon_mo;
+    [state(i).lat, state(i).lon] =ECI2latlon(R_IJK,state(i).t,init_utcvec);
 end
 
 %% Do solar panel generation 
@@ -199,6 +193,7 @@ for fid = 2:length(fnames)
 end
 %% Plot Section
 shorttimelim = [0 2*T./60];
+longtimelim = [0 state(end).t/60];
 %%%%%%%%%%% Instant Power vs. Time %%%%%%%%%%%%%
 figure(3)
 gp = plot(time./60,inst_genpow);
@@ -239,7 +234,7 @@ plot(time./60,batt_pow(1:end-1)./3600) %Whr
 grid on
 title('Battery Power')
 xlabel('Time (min)')
-xlim(shorttimelim)
+xlim(longtimelim)
 ylabel('Power (Whr)')
 FontWidthandPos
 
@@ -250,7 +245,7 @@ grid on
 title('Instantaneous Data Storage')
 ylabel('Data Stored (kB)')
 xlabel('Time (min)')
-xlim(shorttimelim)
+xlim(longtimelim)
 FontWidthandPos
 
 %%%%%%%%%% Momentum Buildup vs. Time %%%%%%%%%
@@ -271,7 +266,7 @@ lonid = latid+1;
 lats = reshape(cell2mat(statecell(latid,:,:)),[1 n]);
 lons = reshape(cell2mat(statecell(lonid,:,:)),[1 n]);
 %Plot the ground track
-N_off = 1; %Orbit offsets in the groundtrack plot
+N_off = 2; %Orbit offsets in the groundtrack plot
 N_now = 1;
 minichunk = 1:timesteps;
 chunk = [];
@@ -282,12 +277,21 @@ while N_now <=N
     N_now = N_now+1;
 end
 figure(1)
-geoaxes();
-geoscatter(lats(chunk),lons(chunk),'.b')
-hold on
-geoscatter(telemcirc_lats,telemcirc_lons,'.r')
-geoscatter(HiCalXcirc_lats,HiCalXcirc_lons,'.m')
-geolimits([-90 90], [-180 180])
-title('Ground Track')
-% title(sprintf('Ground Track for %.0f Orbits',N))
-FontWidthandPos
+itvec = 1:10:length(chunk);
+if itvec(end) ~= length(chunk)
+    itvec(end+1) = length(chunk);
+end
+for i = 1:10:length(chunk)
+    clf
+    subchunk = chunk(1:i);
+    geoaxes();
+    geoscatter(lats(subchunk),lons(subchunk),'.b')
+    hold on
+    geoscatter(telemcirc_lats,telemcirc_lons,'.r')
+    geoscatter(HiCalXcirc_lats,HiCalXcirc_lons,'.m')
+    geolimits([-90 90], [-180 180])
+    title('Ground Track')
+    % title(sprintf('Ground Track for %.0f Orbits',N))
+    FontWidthandPos
+    drawnow
+end
