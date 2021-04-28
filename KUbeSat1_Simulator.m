@@ -1,5 +1,4 @@
 clc
-clearvars
 close all
 
 addpath('KUbeSat_Subfunctions')
@@ -8,9 +7,13 @@ addpath('3D_Shape')
 %% KUbeSat1 Matlab Simulations
 %Define settings for simulation
 perigee_altitude = 550; %km
-N =16; %Number of orbits
-timesteps = 100; %Time steps per orbit
+N =2; %Number of orbits
+timesteps = 50; %Time steps per orbit
 yawsteps = 100; %Yaw steps per time step
+RAANinit = 100.0330; %deg From STK
+% RAANinit = 360+lon_gs-97; %deg First pass is over lawrence
+
+
 lat_gs = 38.971669; %(deg) [Lawrence, KS]
 lon_gs = -95.23525; %(deg) [Lawrence, KS]
 gs_ant_BW = 131; %Groundstation Antenna Beamwidth (deg)
@@ -36,11 +39,12 @@ epoch = initial_epoch(yr_init, mnth_init, day_init, hr_init, min_init, sec_init)
 
 % determine SSO orbit for given altitude and spacecraft
 OE0 = SSO_Earth(perigee_altitude,SC);
-OE0(4) = (360+lon_gs-97)*pi/180; % Sets RAAN and centers groundtrack on Lawrence
+OE0(4) = (RAANinit)*pi/180; % Sets RAAN and centers groundtrack on Lawrence
+[~,Rstart,Vstart] = coe2RV(OE0(1),OE0(2),OE0(3),OE0(6),OE0(4),OE0(5),SC.mu);
+COEstruct0 = RV2coe(Rstart,Vstart,SC.mu);
 
 % compute orbit period and initial mean anomaly
-p = OE0(1)^2/SC.mu; T = 2*pi/sqrt(SC.mu)*p^(3/2);
-E0 = theta_to_E(OE0(2),OE0(6)); M0 = E0 - OE0(2)*sin(E0);
+T = COEstruct0.T_Period;
 
 % determine time array parameters
 n = timesteps*N; % Basing array on number of orbits and points per orbit
@@ -58,34 +62,26 @@ end
 state(n) = initiate_SC_state(SC);
 
 % preallocate states structure memory
-% This is necessary because although we told Matlab it would have a certain
-% number of elements, the actual state elements are stored as pointers. So,
-% we need to assign values to these elements to hold the data memory.
-% Matlab might still throw a warning when accessing structure elements in 
-% loops but the memory allocation should be fine to reduce perfomance hit.
 for i = n-1:-1:1
     state(i) = state(n);
 end
 
 %% Do Keplerian Motion Simulation
+COEstructnow = COEstruct0;
 for i = 1:n
     % store time from array
     state(i).t = time(i);
     
-    % find and store vehicle translation states
-    M = mod(M0 + 2*pi*state(i).t/T,2*pi);
-    E = kepler_ellipse_L(OE0(2), M);
-    TA = E_to_theta(OE0(2),E);
-    OE = OE0; OE(6) = TA;
-    state(i).OE = OE;
-    [R, V] = OE2SV(SC.mu, OE);
+    % find and store vehicle translation states    
+    [~,COEstructnow] = FutureAnomaly(state(i).t,COEstructnow);
+    state(i).OE = COEstructnow;
+    [~,R, V] = coe2RV(COEstructnow);
     state(i).R = R; state(i).V = V;
     
     % current routines do not use a separate estimation state but save
     % it anyway in case we do in the future
     state(i).R_est = R; state(i).V_est = V;
 end
-
 %% Do Runga-Kutta Simulation with J2 and Drag
 %Initial conditions
 rstart =state(1).R; %km
@@ -281,7 +277,7 @@ itvec = 1:10:length(chunk);
 if itvec(end) ~= length(chunk)
     itvec(end+1) = length(chunk);
 end
-for i = 1:10:length(chunk)
+for i = length(chunk)% 1:10:length(chunk)
     clf
     subchunk = chunk(1:i);
     geoaxes();

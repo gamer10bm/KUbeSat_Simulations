@@ -68,7 +68,13 @@ elseif evec(3)<0
     lilomega = 360 - acosd(dot(Ncross,evec)/(Nmag*emag)); %deg verified
 end
 %% Calculate true anomaly
-if rad_v>=0
+if abs(rad_v)<1e-10
+    %Edge case
+    theta = acosd(dot(Ncross,r)/(Nmag*rmag));
+    if r(3) < 0
+        theta = 360-theta;
+    end
+elseif rad_v>0
     theta = acosd(dot(evec,r)/(emag*rmag)); %deg verified
 elseif rad_v<0
     theta = 360-acosd(dot(evec,r)/(emag*rmag)); %deg verified
