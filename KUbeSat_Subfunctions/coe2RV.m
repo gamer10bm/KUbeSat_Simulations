@@ -1,5 +1,10 @@
 function [X, R, V] = coe2RV(h_AngularMomentumorStruct,e_Eccentricity,i_Inclination,...
     nu_TrueAnomaly,RA_RightAscension,w_ArgumentofPerigee,mu)
+% [X, R, V] = coe2RV(h_AngularMomentumorStruct,e_Eccentricity,i_Inclination,...
+%     nu_TrueAnomaly,RA_RightAscension,w_ArgumentofPerigee,mu)
+%
+%
+%
 if nargin<2
     S = h_AngularMomentumorStruct;
     h = S.h_AngularMomentum;
