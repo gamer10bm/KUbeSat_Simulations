@@ -167,7 +167,8 @@ for i = 1:n
     if inst_genpow(i) <= 0
         eclip_chk = true; %Change to in eclipse
     end
-    inst_torque(i) = momentumbuildup(SC,R,V,eclip_chk); %N-m
+%     inst_torque(i) = momentumbuildup(SC,R,V,eclip_chk); %N-m
+    inst_torque(i) = momentum_Daniel(SC,R,V,epoch, state(i).t); %N-m
 end
 
 %% Power usage and data stored

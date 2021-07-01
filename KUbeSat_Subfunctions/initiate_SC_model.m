@@ -14,9 +14,9 @@ SC.J2 = 1.08262668e-3;  % Oblateness parameter for long-term perturbations
 SC.SRP = 4.59e-6;       % Solar radiation pressure in Pa
 
 %Drag parameters
-SC.CD = 2; %Drag Coefficient
+SC.CD = 1.28; %Drag Coefficient
 SC.A = .36/1000/1000; %km^2 
-SC.m = 4; %kg
+SC.m = 3.33; %kg
 SC.rho0 = 4e-4; %kg/km^3
 SC.r0 = 7298145/1000;%km
 SC.H = 200; %km

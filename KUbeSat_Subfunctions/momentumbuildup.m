@@ -49,7 +49,7 @@ Mmters = .1; %A-m^2 estimate for magnetorquers residual dipole
 %Solar settings
 alpha = 0; %deg Solar incidence angle (conservative to be 0)
 q_craft = 0.3; %reflectance of spacecraft (between 0 and 1)
-L_solarm = 0; %Since the full surface is perpendicularly torqued
+L_solarm = 0.15; %Since the full surface is perpendicularly torqued
 
 %Drag settings
 Cd = SC.CD; 
@@ -133,9 +133,9 @@ end
 if gravt_bool
     %% Gravity Gradient Torque
     %Find the moment of inertias http://dynref.engr.illinois.edu/rem.html 
-    Ix = mass/12*(y_dim^2+z_dim^2);
-    Iy = mass/12*(z_dim^2+x_dim^2);
-    Iz = mass/12*(y_dim^2+x_dim^2);
+    Ix = mass/12*(y_dim^2+z_dim^2); %.0217;
+    Iy = mass/12*(z_dim^2+x_dim^2); %.0010;
+    Iz = mass/12*(y_dim^2+x_dim^2); %.0217;
     if Ix<Iy
         Idiff = abs(Iz-Ix);
     else
