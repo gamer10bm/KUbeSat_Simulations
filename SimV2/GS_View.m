@@ -1,5 +1,5 @@
 
-function [InView, range, el] = GS_View(GS, R, time)
+function [InView, range, el] = GS_View(GS, R, time, Re)
 % Rsez = C*Reci
 % GS Input [Lat, Long, Altitude]
 
@@ -10,8 +10,7 @@ thetag = 1.0027379093*2*pi*D;
 L = GS(1);
 theta = GS(2) + thetag;
 
-Re = 6378;
-mu = 3.986e5;
+
 f = 0.08182;
 
 x = (Re/(sqrt(1-f^2*sin(L)^2)) + GS(3))*cos(L);
