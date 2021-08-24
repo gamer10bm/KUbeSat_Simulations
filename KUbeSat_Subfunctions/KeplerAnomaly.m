@@ -28,7 +28,7 @@ end
         error('\n<<<<Parabolic orbit>>>>>\n\n')
         
     elseif e>1 %Hyperbolic orbit
-        warning('\n<<<<Hyperbolic orbit>>>>>\n\tEccenctric Anomaly == Hyperbolic Anomaly\n')
+        %warning('\n<<<<Hyperbolic orbit>>>>>\n\tEccenctric Anomaly == Hyperbolic Anomaly\n')
         %Find the initial hyperbolic anomaly
         Ecc_Anom = asinh((sin(nu)*sqrt(e^2-1))/(1+e*cos(nu))); %Equation 2-31 Vallado
         
