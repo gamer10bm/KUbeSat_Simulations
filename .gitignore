@@ -2,3 +2,8 @@
 KUbeSat1_OrbitSim.m
 *.asv
 CompareMatlab_STK.m
+*.mat
+*.mat
+*.l
+*.mat
+*.mldatx
