@@ -49,10 +49,14 @@ Ncross = cross([0 0 1],hcross);
 Nmag = norm(Ncross);
 
 %% Calculate the right ascension of the ascending node
+Omega = 0;
+Nratio = Ncross(1)/Nmag;
+%Ensure no domain errors
+Nratio = max(min(Nratio,1),-1);
 if Ncross(2)>=0
-    Omega = acosd(Ncross(1)/Nmag); %deg Verified
+    Omega = acosd(Nratio); %deg Verified
 elseif Ncross(2)<0
-    Omega = 360-acosd(Ncross(1)/Nmag); %deg Verified
+    Omega = 360-acosd(Nratio); %deg Verified
 end
 
 %% calculate eccentricity vector
@@ -62,12 +66,17 @@ evec = mu^(-1)*((vmag^2-mu/rmag).*r-rmag*rad_v.*v);
 emag = norm(evec);%verified
 
 %% Calculate argument of perigee
+lilomega = 0;
+Ntoeratio = dot(Ncross,evec)/(Nmag*emag);
+%Ensure no domain errors
+Ntoeratio = max(min(Ntoeratio,1),-1);
 if evec(3)>=0
-    lilomega = acosd(dot(Ncross,evec)/(Nmag*emag)); %deg verified
+    lilomega = acosd(Ntoeratio); %deg verified
 elseif evec(3)<0
-    lilomega = 360 - acosd(dot(Ncross,evec)/(Nmag*emag)); %deg verified
+    lilomega = 360 - acosd(Ntoeratio); %deg verified
 end
 %% Calculate true anomaly
+theta = 0;
 if abs(rad_v)<1e-10
     %Edge case
     theta = acosd(dot(Ncross,r)/(Nmag*rmag));
@@ -90,6 +99,12 @@ a = .5*(r_p+r_a); %km verified
 T = 2*pi/sqrt(mu)*a^(1.5); %sec verified
 
 %% Load output structure
+% COEStruct = 0;
+COEStruct = struct('h_AngularMomentum',0,'e_Eccentricity',0,'i_Inclination',0,...
+    'RA_RightAscension',0,'w_ArgumentofPerigee',0,'nu_TrueAnomaly',0,...
+    'a_SemiMajorAxis',0,'T_Period',0,'Rp_RadiusofPerigee',0,...
+    'Ra_RadiusofApogee',0,'mu',0,'M_MeanAnomaly',0,...
+    'n_MeanMotion',0,'E_EccAnom',0,'t_TimeSincePer',0);
 COEStruct.h_AngularMomentum = hmag; %km^2/s
 COEStruct.e_Eccentricity = emag; 
 COEStruct.i_Inclination = deg2rad(i);%radians
@@ -104,4 +119,5 @@ COEStruct.mu = mu; %km^3/s^2
 [COEStruct.M_MeanAnomaly, COEStruct.n_MeanMotion, COEStruct.E_EccAnom, ...
     COEStruct.t_TimeSincePer] = KeplerAnomaly(COEStruct);
 end
+
 

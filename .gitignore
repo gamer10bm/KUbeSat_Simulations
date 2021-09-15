@@ -1,9 +1,12 @@
-
-KUbeSat1_OrbitSim.m
+#Exclude random matlab files
 *.asv
-CompareMatlab_STK.m
-*.mat
 *.mat
 *.l
-*.mat
 *.mldatx
+
+#Exclude common test files
+KUbeSat1_OrbitSim.m
+CompareMatlab_STK.m
+
+#Exclude simulink slprj directory
+/slprj/

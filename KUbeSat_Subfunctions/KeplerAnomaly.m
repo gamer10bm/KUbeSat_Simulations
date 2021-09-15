@@ -18,6 +18,8 @@ else
     nu = nu_TrueAnomaly; %Radians
 end
 %Be able do this for hyperbolic (e>1), parabolic (e=0), or elliptical
+Mean_Anom = 0;
+Ecc_Anom = 0;
     if e>0&&e<1 %Elliptical orbit
 %         fprintf('\n<<<<Elliptical orbit>>>>>\n\n')
         %Calculate initial Anomalies
@@ -25,10 +27,10 @@ end
         Mean_Anom = Ecc_Anom-e*sin(Ecc_Anom); %radians Equations 2-6 Vallado
         
     elseif abs(1-e)<1e-3 %Parabolic orbit
-        error('\n<<<<Parabolic orbit>>>>>\n\n')
+%         error('\n<<<<Parabolic orbit>>>>>\n\n')
         
     elseif e>1 %Hyperbolic orbit
-        warning('\n<<<<Hyperbolic orbit>>>>>\n\tEccenctric Anomaly == Hyperbolic Anomaly\n')
+%         warning('\n<<<<Hyperbolic orbit>>>>>\n\tEccenctric Anomaly == Hyperbolic Anomaly\n')
         %Find the initial hyperbolic anomaly
         Ecc_Anom = asinh((sin(nu)*sqrt(e^2-1))/(1+e*cos(nu))); %Equation 2-31 Vallado
         
@@ -39,7 +41,7 @@ end
         Mean_Anom = Ecc_Anom-e*sin(Ecc_Anom);
     end
 %Calculate mean motion
-Mean_Motion = sqrt(mu/(-a)^3);
+Mean_Motion = sqrt(mu/(a)^3);
 %Find the time since periapsis
 TimeSincePeriapsis_s = Mean_Anom/Mean_Motion;
 end

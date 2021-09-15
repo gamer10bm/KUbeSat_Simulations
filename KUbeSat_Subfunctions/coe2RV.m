@@ -35,7 +35,7 @@ else
     nu = nu_TrueAnomaly; %Radians
 end
 %Check if mu exists
-if ~exist('mu','var')
+if nargin < 7
     mu = 3.986004e5; %km^3/s^2
 end
 
