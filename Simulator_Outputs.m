@@ -1,45 +1,73 @@
 %This script is used to generate output figures based on the outputs of the
 %simulink model
 
+addpath('KUbeSat_Subfunctions')
+addpath('3D_Shape')
+
+%% Run Simulink Model with below settings
+Num_orb = 1;
+Period = 95.65; %min (approximately)
+time_step = 5; %sec 
+
+time_sim = Num_orb*Period*60; %sec
+model_name = fullfile('SimV2','SatStates');
+
+%Run simulation
+simout = sim(model_name,'StartTime','0','StopTime',num2str(time_sim),'FixedStep',num2str(time_step));
 %% Translate outputs
-%Grab number of orbits simulated
-Num_orb = 0;
 
 %Grab vector of time points
-time = 0;
+time = simout.tout; %seconds
 
 %Determine number of timesteps per orbit
-timesteps = 0;
+timesteps = length(time);
 
 %Grab generated power
-inst_genpow = 0;
-
-%Grab used power
-inst_usepow = 0;
+inst_genpow = simout.Pwr_SP.Data;
 
 %Grab battery level
-batt_pow = 0;
+batt_pow = simout.Batt_Charge.Data;
 
 %Grab data storage
-data_stored = 0;
+data_stored = simout.data.Data;
 
 %Grab torque build up
 torque_build = 0;
 
-%Grab lat and lon
-lats = 0;
-lons = 0;
+%% Generate lat and lon
+R = simout.R.Data;
+V = simout.V.Data;
+% initialize simulation epoch
+yr_init = 2022; mnth_init = 1; day_init = 1; hr_init = 0;
+min_init = 0; sec_init = 0;
+init_utcvec = [yr_init, mnth_init, day_init, hr_init, min_init, sec_init];
+lats = zeros(1,size(R,1)); lons = zeros(1,size(R,1));
+for i = 1:length(R)
+    
+    [lats(i), lons(i)] =ECI2latlon(R(i,:)',time(i),init_utcvec);
+end
 
-%Send to SubPowStruct
-SubPowStruct = 0;
+%Get list of output fields
+outfields = simout.who;
+%Find valid fields for power
+pow_pat = 'Pwr_';
+clearvars SubPowStruct
+for id = 1:length(outfields)
+    curfield = outfields{id};
+    if contains(curfield,pow_pat) && ~contains(curfield,'SP')
+        split_str = strsplit(curfield,pow_pat);
+        sub_str = split_str{2}; %2 is the subsystem name;
+        %Load to SubPowStruct
+        SubPowStruct.(sub_str) = simout.(curfield).Data;
+    end
+end
 
-
-
-%% Print Duty Cycles
+%% Print Duty Cycles and Generate Instant Use Power
 %Get and print duty cycles from SubPowstruct
 fnames = fieldnames(SubPowStruct);
 fduty = zeros(1,length(fnames)-1);
-for fid = 2:length(fnames)
+inst_usepow = [];
+for fid = 1:length(fnames)
     %Get the maximum value for the field
     fmax = max(SubPowStruct.(fnames{fid}));
     %Get number of values at max
@@ -48,6 +76,12 @@ for fid = 2:length(fnames)
     fduty(fid) = fmax_occurs./length(SubPowStruct.(fnames{fid}));
     %Print it
     fprintf('\n%s duty cycle = %.2f%s\n',fnames{fid},fduty(fid)*100,'%')
+    %Save to inst_usepow
+    if fid == 1 || isempty(inst_usepow)
+        inst_usepow = SubPowStruct.(fnames{fid});
+    else
+        inst_usepow = inst_usepow+SubPowStruct.(fnames{fid});
+    end
 end
 
 %% Plot output figures
@@ -56,15 +90,14 @@ fig_save = struct('fignum','','savename','');
 fignum = 0;
 
 %Set time axis limits
-period = 0;
-shorttimelim = [0 2*period./60]; %minutes
+shorttimelim = [0 2*Period./60]; %minutes
 longtimelim = [0 time(end)/60]; %minutes
 
 %%%%%%%%%%% Instant Power vs. Time %%%%%%%%%%%%%
 if 1
     fignum = fignum +1;
     %Send figure to save structure
-    fig_save(end+1) = structure('fignum',fignum,'savename','KUbeSat1_Instant_Power');
+    fig_save(end+1) = struct('fignum',fignum,'savename','KUbeSat1_Instant_Power');
     %Plot it
     figure(fignum)
     gp = plot(time./60,inst_genpow);
@@ -86,10 +119,10 @@ end
 if 1
     fignum = fignum +1;
     %Send figure to save structure
-    fig_save(end+1) = structure('fignum',fignum,'savename','KUbeSat1_Subsystem_Power');
+    fig_save(end+1) = struct('fignum',fignum,'savename','KUbeSat1_Subsystem_Power');
     %Plot it
     figure(fignum)
-    oneperlim = [0 period./60];
+    oneperlim = [0 Period./60];
     subfields = fieldnames(SubPowStruct);
     % subfields = subfields(2:end);
     for ids = 1:length(subfields)
@@ -110,10 +143,10 @@ end
 if 1
     fignum = fignum +1;
     %Send figure to save structure
-    fig_save(end+1) = structure('fignum',fignum,'savename','KUbeSat1_Battery_Storage');
+    fig_save(end+1) = struct('fignum',fignum,'savename','KUbeSat1_Battery_Storage');
     %Plot it
     figure(fignum)
-    plot(time./60,batt_pow(1:end-1)./3600) %Whr
+    plot(time./60,batt_pow./3600) %Whr
     grid on
     title('Battery Power')
     xlabel('Time (min)')
@@ -126,10 +159,10 @@ end
 if 1
     fignum = fignum +1;
     %Send figure to save structure
-    fig_save(end+1) = structure('fignum',fignum,'savename','KUbeSat1_Data_Stored');
+    fig_save(end+1) = struct('fignum',fignum,'savename','KUbeSat1_Data_Stored');
     %Plot it
     figure(fignum)
-    plot(time./60,data_stored(1:end-1)./8)
+    plot(time./60,data_stored./8)
     grid on
     title('Instantaneous Data Storage')
     ylabel('Data Stored (kB)')
@@ -139,10 +172,10 @@ if 1
 end
 
 %%%%%%%%%% Momentum Buildup vs. Time %%%%%%%%%
-if 1
+if 0
     fignum = fignum +1;
     %Send figure to save structure
-    fig_save(end+1) = structure('fignum',fignum,'savename','KUbeSat1_Instant_Power');
+    fig_save(end+1) = struct('fignum',fignum,'savename','KUbeSat1_Instant_Power');
     %Plot it
     figure(fignum)
     plot(time./60,torque_build(1:end-1)./1e3)
@@ -158,7 +191,7 @@ end
 if 1
     fignum = fignum +1;
     %Send figure to save structure
-    fig_save(end+1) = structure('fignum',fignum,'savename','KUbeSat1_Instant_Power');
+    fig_save(end+1) = struct('fignum',fignum,'savename','KUbeSat1_Instant_Power');
     %Plot it
     figure(fignum)
     %Plot the ground track
@@ -194,10 +227,12 @@ if 1
 end
 
 %% Save figures
-save_dir = 'outputs';
-save_type = '.fig';
-for save_id = 2:length(fig_save)
-    fn = fullfile(save_dir,[fig_save(save_id).savename save_type]);
-    fprint('Saving Figure %d: %s\n',fig_save(save_id).fignum,fn)
-    saveas(figure(fig_save(save_id).fignum),fn);
+if 0
+    save_dir = 'outputs';
+    save_type = '.fig';
+    for save_id = 2:length(fig_save)
+        fn = fullfile(save_dir,[fig_save(save_id).savename save_type]);
+        fprint('Saving Figure %d: %s\n',fig_save(save_id).fignum,fn)
+        saveas(figure(fig_save(save_id).fignum),fn);
+    end
 end
