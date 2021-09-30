@@ -1,13 +1,17 @@
+close all
+clearvars
 %This script is used to generate output figures based on the outputs of the
 %simulink model
 
 addpath('KUbeSat_Subfunctions')
 addpath('3D_Shape')
+addpath('SimV2')
 
 %% Run Simulink Model with below settings
 Num_orb = 1;
 Period = 95.65; %min (approximately)
 time_step = 5; %sec 
+perigee_altitude = 550; %km %Change to get from R values
 
 time_sim = Num_orb*Period*60; %sec
 model_name = fullfile('SimV2','SatStates');
@@ -189,6 +193,20 @@ end
 
 %%%%%%%%%%%%% Ground Track %%%%%%%%%%%%%%%%
 if 1
+    %Generate geocircles for groundstation and mcmurdo
+    lat_gs = 38.971669; %(deg) [Lawrence, KS]
+    lon_gs = -95.23525; %(deg) [Lawrence, KS]
+    gs_ant_BW = 131; %Groundstation Antenna Beamwidth (deg)
+    capture_radius = perigee_altitude*tand(gs_ant_BW/2);
+    %Get geocircle for transmit
+    [telemcirc_lats, telemcirc_lons] = geocircle(lat_gs,lon_gs,capture_radius);
+
+    lat_mcmurdo = -82.406; lon_mcmurdo = 0; %(deg) McMurdo Station
+    mcmurdo_ant_BW = 90;
+    capture_radius = perigee_altitude*tand(mcmurdo_ant_BW/2);
+    %Get geocircle for HiCalX pulses
+    [HiCalXcirc_lats, HiCalXcirc_lons] = geocircle(lat_mcmurdo,lon_mcmurdo,capture_radius);
+    %Plot it
     fignum = fignum +1;
     %Send figure to save structure
     fig_save(end+1) = struct('fignum',fignum,'savename','KUbeSat1_Instant_Power');
