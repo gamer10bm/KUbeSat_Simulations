@@ -8,7 +8,7 @@ addpath('3D_Shape')
 addpath('SimV2')
 
 %% Run Simulink Model with below settings
-Num_orb = 5;
+Num_orb = 1;
 Period = 95.65; %min (approximately)
 time_step = 5; %sec 
 perigee_altitude = 550; %km %Change to get from R values
@@ -59,7 +59,7 @@ init_utcvec = [yr_init, mnth_init, day_init, hr_init, min_init, sec_init];
 lats = zeros(1,size(R,1)); lons = zeros(1,size(R,1));
 for i = 1:length(R)
     
-    [lats(i), lons(i)] =ECI2latlon(R(i,:)',time(i),init_utcvec);
+    [lats(i), lons(i)] =ECEF2latlon(R(i,:)',time(i));
 end
 
 %Get list of output fields

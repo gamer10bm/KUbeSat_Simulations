@@ -17,7 +17,7 @@ end
     const_struc(end+1) = struct('name','i_deg','val',"97.6123");
     const_struc(end+1) = struct('name','RAAN_deg','val',"90");
     const_struc(end+1) = struct('name','argPeri_deg','val',"0");
-    const_struc(end+1) = struct('name','TA_deg','val',"90");
+    const_struc(end+1) = struct('name','TA_deg','val',"0");
     const_struc(end+1) = struct('name','year','val',"2022");
     const_struc(end+1) = struct('name','month','val',"1");
     const_struc(end+1) = struct('name','day','val',"1");

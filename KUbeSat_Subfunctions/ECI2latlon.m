@@ -84,10 +84,10 @@ end
     R_xyz = R_IJK.'*dcm;
     [lat,lon] = ECEF2latlon(R_xyz);
     
-    %     %Change longitude based on earth's rotation
+%     %     %Change longitude based on earth's rotation
 %     P_s = 24*3600; %seconds length of mean solar day
 %     P_e = 86164; %seconds rotation period of earth
-%     lon_mo = lon-360*(1/P_e-1/P_s)*state(i).t;
+%     lon_mo = lon-360*(1/P_e-1/P_s)*t_sec;
 %     if lon_mo>=180
 %         lon_mo = lon_mo-360*floor(i/n*N);
 %     end
