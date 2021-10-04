@@ -13,10 +13,6 @@ L = GS(1);
 % Long of GS
 theta = GS(2) + thetag;
 
-% Re = 6378;
-% mu = 3.986e5;
-% f = 0.08182;      %Flattening ratio
-
 % X & Y of GS in ECEF
 x = (Re/(sqrt(1-f^2*sin(L)^2)) + GS(3))*cos(L);
 z = (Re*(1-f^2)/(sqrt(1-f^2*sin(L)^2)) + GS(3))*sin(L);
@@ -43,4 +39,3 @@ else
 end
 
 end
-

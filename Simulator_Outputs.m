@@ -8,16 +8,23 @@ addpath('3D_Shape')
 addpath('SimV2')
 
 %% Run Simulink Model with below settings
-Num_orb = 1;
+Num_orb = 5;
 Period = 95.65; %min (approximately)
 time_step = 5; %sec 
 perigee_altitude = 550; %km %Change to get from R values
 
 time_sim = Num_orb*Period*60; %sec
-model_name = fullfile('SimV2','SatStates');
+
+base_dir = 'SimV2';
+model_name = 'SatStates';
+model_path = fullfile(base_dir,model_name);
+if 1
+    %Load custom simulator settings (open file for examples)
+    Simulator_Settings
+end
 
 %Run simulation
-simout = sim(model_name,'StartTime','0','StopTime',num2str(time_sim),'FixedStep',num2str(time_step));
+simout = sim(model_path,'StartTime','0','StopTime',num2str(time_sim),'FixedStep',num2str(time_step));
 %% Translate outputs
 
 %Grab vector of time points
@@ -34,6 +41,10 @@ batt_pow = simout.Batt_Charge.Data;
 
 %Grab data storage
 data_stored = simout.data.Data;
+
+%Grab lat and lon in model
+lats2 = simout.lat.Data;
+lons2 = simout.lon.Data;
 
 %Grab torque build up
 torque_build = 0;
@@ -94,7 +105,7 @@ fig_save = struct('fignum','','savename','');
 fignum = 0;
 
 %Set time axis limits
-shorttimelim = [0 2*Period./60]; %minutes
+shorttimelim = [0 time(end)/60]; %minutes
 longtimelim = [0 time(end)/60]; %minutes
 
 %%%%%%%%%%% Instant Power vs. Time %%%%%%%%%%%%%
@@ -126,7 +137,7 @@ if 1
     fig_save(end+1) = struct('fignum',fignum,'savename','KUbeSat1_Subsystem_Power');
     %Plot it
     figure(fignum)
-    oneperlim = [0 Period./60];
+    oneperlim = [0 Period];
     subfields = fieldnames(SubPowStruct);
     % subfields = subfields(2:end);
     for ids = 1:length(subfields)
@@ -150,7 +161,7 @@ if 1
     fig_save(end+1) = struct('fignum',fignum,'savename','KUbeSat1_Battery_Storage');
     %Plot it
     figure(fignum)
-    plot(time./60,batt_pow./3600) %Whr
+    plot(time./60,batt_pow) %Whr
     grid on
     title('Battery Power')
     xlabel('Time (min)')
@@ -215,14 +226,7 @@ if 1
     %Plot the ground track
     N_off = 2; %Orbit offsets in the groundtrack plot
     N_now = 1;
-    minichunk = 1:timesteps;
-    chunk = [];
-    while N_now <=Num_orb
-        if N_now == 1 || rem(N_now,N_off)==0
-            chunk = [chunk minichunk+(N_now-1)*timesteps];
-        end
-        N_now = N_now+1;
-    end
+    chunk = 1:timesteps;
     itvec = 1:10:length(chunk);
     if itvec(end) ~= length(chunk)
         itvec(end+1) = length(chunk);
@@ -234,6 +238,9 @@ if 1
         geoaxes();
         geoscatter(lats(subchunk),lons(subchunk),'.b')
         hold on
+        if exist('lats2','var') && ~isempty(lats2)
+            geoscatter(lats2(subchunk),lons2(subchunk),'.g')
+        end
         geoscatter(telemcirc_lats,telemcirc_lons,'.r')
         geoscatter(HiCalXcirc_lats,HiCalXcirc_lons,'.m')
         geolimits([-90 90], [-180 180])

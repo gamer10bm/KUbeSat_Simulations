@@ -15,12 +15,12 @@ function [lat, lon, utcvec] = ECI2latlon(R_IJK,t_sec,init_utcvec)
 % See also: ECEF2latlon.m, dcmeci2ecef.m
 
 %Check for inputs
-if ~exist('t_sec','var') || isempty(t_sec)
+if nargin<2 || isempty(t_sec)
     warning('t_sec set to 0')
     t_sec = 0;
 end
 default_utcvec = [2020 1 1 0 0 0];
-if ~exist('init_utcvec','var')
+if nargin<3 || isempty(init_utcvec)
     init_utcvec = default_utcvec;
 elseif isempty(init_utcvec) || length(init_utcvec)<6
     warning('init_utcvec is the wrong length. Setting to default 2020/1/1')
