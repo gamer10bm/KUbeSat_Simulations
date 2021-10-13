@@ -10,6 +10,7 @@ end
     const_struc(end+1) = struct('name','eps_earth_deg','val',"23.5");
     const_struc(end+1) = struct('name','Re_km','val',"6378");
     const_struc(end+1) = struct('name','flat_rat','val',"0.08182");
+    const_struc(end+1) = struct('name','p0','val',"4.58e-6");
     
     %Orbit Constants
     const_struc(end+1) = struct('name','a_km','val',"555");
@@ -22,14 +23,15 @@ end
     const_struc(end+1) = struct('name','month','val',"1");
     const_struc(end+1) = struct('name','day','val',"1");
     
-    %Ground Station Constants
+    %Location Constants
     const_struc(end+1) = struct('name','Lat_GS_deg','val',"39.96");
     const_struc(end+1) = struct('name','Long_GS_deg','val',"-95.25");
     const_struc(end+1) = struct('name','alt_GS_km','val',"3.6");
+    const_struc(end+1) = struct('name','Lat_HiCal_deg','val',"-60");
     
     %Satellite Constants
     const_struc(end+1) = struct('name','Sol_Axyz_m2','val',"[0.03 0.01 0]");
-    const_struc(end+1) = struct('name','S','val',"1370");
+    const_struc(end+1) = struct('name','S_W_m2','val',"1370");
     const_struc(end+1) = struct('name','nSolar','val',"0.185");
     const_struc(end+1) = struct('name','nPath','val',"0.9");  
     const_struc(end+1) = struct('name','batt_init_Whr','val',"40");
@@ -42,6 +44,11 @@ end
     const_struc(end+1) = struct('name','data_Comms_kbps','val',"250");
     const_struc(end+1) = struct('name','pow_EPS_W','val',"0.2");
     const_struc(end+1) = struct('name','pow_BattHeat_W','val',"0.8");
+    const_struc(end+1) = struct('name','Cd','val',"1.28");
+    const_struc(end+1) = struct('name','COM','val',"[1.14122; 19.92782; 0.54375]*0.001");
+    const_struc(end+1) = struct('name','Area','val',"[0.0341; 0.01; 0.03141]");
+    const_struc(end+1) = struct('name','J_Inert','val',"diag([1082793.489*20; 4354.008742*223; 1085536.436*20])/1000^3");
+    
 
 
 %Load model

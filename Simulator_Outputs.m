@@ -212,11 +212,24 @@ if 1
     %Get geocircle for transmit
     [telemcirc_lats, telemcirc_lons] = geocircle(lat_gs,lon_gs,capture_radius);
 
-    lat_mcmurdo = -82.406; lon_mcmurdo = 0; %(deg) McMurdo Station
-    mcmurdo_ant_BW = 90;
-    capture_radius = perigee_altitude*tand(mcmurdo_ant_BW/2);
-    %Get geocircle for HiCalX pulses
-    [HiCalXcirc_lats, HiCalXcirc_lons] = geocircle(lat_mcmurdo,lon_mcmurdo,capture_radius);
+%     lat_mcmurdo = -82.406; lon_mcmurdo = 0; %(deg) McMurdo Station
+%     mcmurdo_ant_BW = 90;
+%     capture_radius = perigee_altitude*tand(mcmurdo_ant_BW/2);
+%     %Get geocircle for HiCalX pulses
+%     [HiCalXcirc_lats, HiCalXcirc_lons] = geocircle(lat_mcmurdo,lon_mcmurdo,capture_radius);
+    if exist('const_struc','var')
+        const_cells = struct2cell(const_struc);
+        HiCal_ind = find(strcmp(const_cells(1,1,:),'Lat_HiCal_deg'),1,'first');
+    else
+        HiCal_ind = [];
+    end
+    if isempty(HiCal_ind)
+        HiCal_lat_deg = -60;
+    else
+        HiCal_lat_deg = str2num(const_struc(HiCal_ind).val);
+    end
+    HiCalXcirc_lats = ones(1,100)*HiCal_lat_deg;
+    HiCalXcirc_lons = linspace(-180, 180,length(HiCalXcirc_lats));
     %Plot it
     fignum = fignum +1;
     %Send figure to save structure
