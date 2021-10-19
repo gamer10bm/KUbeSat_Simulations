@@ -32,7 +32,7 @@ end
     %Satellite Constants
     const_struc(end+1) = struct('name','Sol_Axyz_m2','val',"[0.03 0.01 0]");
     const_struc(end+1) = struct('name','S_W_m2','val',"1370");
-    const_struc(end+1) = struct('name','nSolar','val',"0.185");
+    const_struc(end+1) = struct('name','nSolar','val',"0.28"); %0.185
     const_struc(end+1) = struct('name','nPath','val',"0.9");  
     const_struc(end+1) = struct('name','batt_init_Whr','val',"40");
     const_struc(end+1) = struct('name','pow_PCRD_W','val',"3");
@@ -48,6 +48,7 @@ end
     const_struc(end+1) = struct('name','COM','val',"[1.14122; 19.92782; 0.54375]*0.001");
     const_struc(end+1) = struct('name','Area','val',"[0.0341; 0.01; 0.03141]");
     const_struc(end+1) = struct('name','J_Inert','val',"diag([1082793.489*20; 4354.008742*223; 1085536.436*20])/1000^3");
+    const_struc(end+1) = struct('name','H0','val',"[.3e-3;0.01e-3;.3e-3]");
     
 
 

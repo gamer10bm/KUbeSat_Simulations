@@ -49,6 +49,13 @@ lons2 = simout.lon.Data;
 %Grab torque build up
 torque_build = 0;
 
+%Grab quaternions
+quats = cell(1,length(time));
+for iq = 1:length(quats)
+    quats{iq} = [simout.quaternion.Data(iq,1); simout.quaternion.Data(iq,2);...
+        simout.quaternion.Data(iq,3); simout.quaternion.Data(iq,4)];
+end
+
 %% Generate lat and lon
 R = simout.R.Data;
 V = simout.V.Data;
@@ -261,6 +268,156 @@ if 1
         % title(sprintf('Ground Track for %.0f Orbits',N))
         FontWidthandPos
         drawnow
+    end
+end
+
+%%%%%%%%%%%%% Orientation vs. Time %%%%%%%%%%%%%%%%
+if 1
+    %% Make 3d matrix representing the KUbeSat
+    globalmax_m = 1;%m
+    globalN = 300;
+
+    SC_sizevec_m = [0.3 0.1 0.1]; %m
+    SC_strtvec_m = [0.1 0.1 0.1]; %m
+
+    [globalmat_SC, spacevec_m] = make3drect(SC_sizevec_m, SC_strtvec_m, globalmax_m,globalN);
+
+    %Cut hole through middle with some thickness on either side
+    wall_thick = 0.01; %m
+    yz_sub_sizevec_m = SC_sizevec_m-wall_thick*2;
+    yz_sub_sizevec_m(1) = globalmax_m; %Cuts all the way through x-axis
+    yz_sub_strtvec_m = SC_strtvec_m+wall_thick;
+    yz_sub_strtvec_m(1) = 0; 
+    [globalmat_yz_sub] = make3drect(yz_sub_sizevec_m,yz_sub_strtvec_m,globalmax_m,globalN);
+
+    %Make 2 xy cuts 
+    x_off = wall_thick/2; y_off = wall_thick;
+    xy_inner_sub_sizevec_m = [SC_sizevec_m(1)./2-x_off*2 SC_sizevec_m(2)-y_off*2 0];
+    xy_inner_sub_sizevec_m(3) = globalmax_m;
+    xy1_inner_sub_strtvec_m = SC_strtvec_m +[x_off y_off 0];
+    xy1_inner_sub_strtvec_m(3) = 0;
+    xy2_inner_sub_strtvec_m = xy1_inner_sub_strtvec_m;
+    xy2_inner_sub_strtvec_m(1) = xy1_inner_sub_strtvec_m(1) + SC_sizevec_m(1)/2;
+    xy2_inner_sub_strtvec_m(3) =0;
+    [globalmat_xy1_inner_sub] = make3drect(xy_inner_sub_sizevec_m,xy1_inner_sub_strtvec_m,globalmax_m,globalN);
+    [globalmat_xy2_inner_sub] = make3drect(xy_inner_sub_sizevec_m,xy2_inner_sub_strtvec_m,globalmax_m,globalN);
+
+
+    %Cut hole in globalmat with subtraction mats
+    globalmat = globalmat_SC;
+    globalmat = and(globalmat,~globalmat_xy1_inner_sub);
+    globalmat = and(globalmat,~globalmat_xy2_inner_sub);
+    globalmat = and(globalmat,~globalmat_yz_sub);
+
+    %% Extract external geometry and center about origin
+    [XYfaces, XZfaces, YZfaces, cg_xyz] = extract3dshape(globalmat,spacevec_m,1);
+
+    %Center each face
+    XYfaces_cent(1,:) = XYfaces(1,:)-cg_xyz(1);
+    XYfaces_cent(2,:) = XYfaces(2,:)-cg_xyz(2);
+    XYfaces_cent(3,:) = XYfaces(3,:)-cg_xyz(3);
+    XZfaces_cent(1,:) = XZfaces(1,:)-cg_xyz(1);
+    XZfaces_cent(2,:) = XZfaces(2,:)-cg_xyz(2);
+    XZfaces_cent(3,:) = XZfaces(3,:)-cg_xyz(3);
+    YZfaces_cent(1,:) = YZfaces(1,:)-cg_xyz(1);
+    YZfaces_cent(2,:) = YZfaces(2,:)-cg_xyz(2);
+    YZfaces_cent(3,:) = YZfaces(3,:)-cg_xyz(3);
+
+
+    %% Plot the result 
+    %Initialize for movie
+    moviestep = 60; %sec
+    itvec = floor(1:moviestep/time_step:length(time));
+    timestoit = time(itvec);
+
+    %Get rotations from statestoit
+    roll = zeros(1,length(timestoit));
+    pitch = zeros(1,length(timestoit));
+    yaw = zeros(1,length(timestoit));
+    Rotmat = cell(1,length(timestoit));
+    for i = 1:length(timestoit)
+        %Get the rotation matrix and 
+        [roll(i), pitch(i), yaw(i), Rotmat{i}] = quaternion2euler(quats{i});
+    end
+    keyboard
+    %Make a moooovie
+    fignum = fignum + 1;
+    h = figure(fignum); clf
+    axsat = axes('NextPlot','replacechildren','OuterPosition',[0 0 .8 1]);
+    ax2 = axes('Box','on','OuterPosition',[0.6 .4 .4 .6],'NextPlot','replacechildren');
+    M(length(timestoit)) = struct('cdata',[],'colormap',[]);
+    for i = 1:length(timestoit)
+        %Rotate all the faces
+        XZrot = Rotmat{i}*XZfaces_cent;
+        XYrot = Rotmat{i}*XYfaces_cent;
+        YZrot = Rotmat{i}*YZfaces_cent;
+        set(h,'currentaxes',axsat);
+        cla;
+        scatter3(axsat,XZrot(1,:),XZrot(2,:),XZrot(3,:),'filled')
+        hold(axsat,'on');
+        scatter3(axsat,XYrot(1,:),XYrot(2,:),XYrot(3,:),'filled')
+        scatter3(axsat,YZrot(1,:),YZrot(2,:),YZrot(3,:),'filled')
+        %Plot axis for reference
+        n = 50;
+        ax1vec = linspace(0,globalmax_m/2,n);
+        ax23vec = zeros(1,n);
+        scatter3(axsat,ax1vec,ax23vec,ax23vec,12,'ko','filled')
+        scatter3(axsat,ax23vec,ax1vec,ax23vec,12,'ko','filled')
+        scatter3(axsat,ax23vec,ax23vec,ax1vec,12,'ko','filled')
+        n = n/2;
+        ax1vec = linspace(0,-globalmax_m/2,n);
+        ax23vec = zeros(1,n);
+        scatter3(axsat,ax1vec,ax23vec,ax23vec,12,'ks','filled')
+        scatter3(axsat,ax23vec,ax1vec,ax23vec,12,'ks','filled')
+        scatter3(axsat,ax23vec,ax23vec,ax1vec,12,'ks','filled')
+        hold(axsat,'off');
+        grid on
+        % xlim([-globalmax_m globalmax_m])
+        % ylim([-globalmax_m globalmax_m])
+        % zlim([-globalmax_m globalmax_m])
+        title(axsat,sprintf('Roll = %.2f^o, Pitch =%.2f^o, Yaw = %.2f^o',roll(i),pitch(i),yaw(i)))
+        xlabel(axsat,'X Axis (m)')
+        ylabel(axsat,'Y Axis (m)')
+        zlabel(axsat,'Z Axis (m)')
+        axis(axsat,'equal')
+        FontWidthandPos
+        %Make over lay plot
+        set(h,'currentaxes',ax2);
+        plot(ax2,[timestoit]./60,roll)
+        hold on
+        plot(ax2,[timestoit]./60,pitch)
+        plot(ax2,[timestoit]./60,yaw)
+        plot(ax2,[timestoit(i) timestoit(i)]./60,[-300 300],'k')
+        hold off
+        grid on
+        ylim(ax2,[-200 200])
+        ylabel(ax2,'Degrees')
+        xlabel(ax2,'Minutes')
+        legend(ax2,{'Roll','Pitch','Yaw'},'Location','northoutside')
+        FontWidthandPos
+        drawnow
+        M(i) = getframe(gcf);
+        if i == 1
+    %         h.Visible = 'off';
+        end
+        pause(.001)
+    end
+    if 0
+        %Send movie to gif
+        filename = 'Rotation_GIF.gif';
+        % Capture the plot as an image 
+              frame = getframe(h); 
+        for n = 1:length(M)
+            frame = M(n);
+            im = frame2im(frame); 
+            [imind,cm] = rgb2ind(im,256); 
+            % Write to the GIF File 
+            if n == 1 
+                imwrite(imind,cm,filename,'gif', 'Loopcount',inf); 
+            else 
+                imwrite(imind,cm,filename,'gif','WriteMode','append'); 
+            end
+        end
     end
 end
 
