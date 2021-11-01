@@ -44,6 +44,8 @@ end
     const_struc(end+1) = struct('name','data_Comms_kbps','val',"250");
     const_struc(end+1) = struct('name','pow_EPS_W','val',"0.2");
     const_struc(end+1) = struct('name','pow_BattHeat_W','val',"0.8");
+    const_struc(end+1) = struct('name','pow_GNSS_W','val',"1.915");
+    const_struc(end+1) = struct('name','data_GNSS_kbps','val',"0.01");
     const_struc(end+1) = struct('name','Cd','val',"1.28");
     const_struc(end+1) = struct('name','COM','val',"[1.14122; 19.92782; 0.54375]*0.001");
     const_struc(end+1) = struct('name','Area','val',"[0.0341; 0.01; 0.03141]");
