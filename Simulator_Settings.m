@@ -40,8 +40,6 @@ end
     const_struc(end+1) = struct('name','pow_HiCal_W','val',"0.5");
     const_struc(end+1) = struct('name','data_HiCal_kbps','val',"0.1");
     const_struc(end+1) = struct('name','pow_CDH_W','val',"0.5");
-    const_struc(end+1) = struct('name','pow_Comms_W','val',"0.3");
-    const_struc(end+1) = struct('name','data_Comms_kbps','val',"250");
     const_struc(end+1) = struct('name','pow_EPS_W','val',"0.2");
     const_struc(end+1) = struct('name','pow_BattHeat_W','val',"0.8");
     const_struc(end+1) = struct('name','pow_GNSS_W','val',"1.915");
@@ -51,7 +49,10 @@ end
     const_struc(end+1) = struct('name','Area','val',"[0.0341; 0.01; 0.03141]");
     const_struc(end+1) = struct('name','J_Inert','val',"diag([1082793.489*20; 4354.008742*223; 1085536.436*20])/1000^3");
     const_struc(end+1) = struct('name','H0','val',"[.3e-3;0.01e-3;.3e-3]");
-    
+    const_struc(end+1) = struct('name','pow_CommsTX_W','val',"0.3");
+    const_struc(end+1) = struct('name','data_CommsTX_kbps','val',"250");
+    const_struc(end+1) = struct('name','pow_CommsRX_W','val',"0.05");
+    const_struc(end+1) = struct('name','data_CommsRX_kbps','val',"0");
 
 
 %Load model
