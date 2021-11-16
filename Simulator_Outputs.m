@@ -8,7 +8,7 @@ addpath('3D_Shape')
 addpath('SimV2')
 
 %% Run Simulink Model with below settings
-Num_orb = 1;
+Num_orb = 4;
 Period = 95.65; %min (approximately)
 time_step = 5; %sec 
 perigee_altitude = 550; %km %Change to get from R values
