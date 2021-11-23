@@ -53,7 +53,7 @@ end
     const_struc(end+1) = struct('name','data_CommsTX_kbps','val',"250");
     const_struc(end+1) = struct('name','pow_CommsRX_W','val',"0.05");
     const_struc(end+1) = struct('name','data_CommsRX_kbps','val',"0");
-    const_struc(end+1) = struct('name','magnetorqueres','val',"[0.61; 0.61; 0.13]");
+    const_struc(end+1) = struct('name','magnetorquers','val',"[0.61; 0.61; 0.13]");
 
 
 %Load model
